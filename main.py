@@ -94,7 +94,7 @@ def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_qu
     """
     Instructs the LLM to parse a query, evaluate it against clauses, and return a structured JSON decision.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     # *** KEY IMPROVEMENT BASED ON YOUR PROBLEM STATEMENT ***
     # The prompt now explicitly asks the model to parse the query first.
