@@ -19,7 +19,9 @@ load_dotenv()
 # CRITICAL SECURITY: Load API key from environment variables.
 API_KEY = os.getenv("GOOGLE_API_KEY")
 if not API_KEY:
-    raise ValueError("SECURITY ALERT: GOOGLE_API_KEY is not set in environment variables!")
+    print("WARNING: GOOGLE_API_KEY not found in environment variables. Using a placeholder.")
+    API_KEY = "YOUR_API_KEY_HERE" # Replace with your actual key if not using .env
+
 genai.configure(api_key=API_KEY)
 
 # --- CONFIGURATION ---
@@ -37,13 +39,11 @@ print("Initializing embedding model...")
 embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
 print("Embedding model loaded.")
 
-# --- DOCUMENT PROCESSING LOGIC ---
+# --- DOCUMENT PROCESSING & VECTOR STORE LOGIC ---
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def extract_text_from_file(file_path, filename):
-    # This function remains the same, effectively handling PDF, DOCX, and TXT
-    # ... (code from previous response) ...
     file_text = ""
     try:
         if filename.endswith(".pdf"):
@@ -60,10 +60,7 @@ def extract_text_from_file(file_path, filename):
         print(f"Error reading file {filename}: {e}")
         return None
 
-# --- VECTOR STORE & RETRIEVAL LOGIC ---
 def create_and_save_vector_store(filename):
-    # This function remains the same
-    # ... (code from previous response) ...
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     store_path = os.path.join(VECTOR_STORE_DIR, f"{filename}.faiss")
     if os.path.exists(store_path): return True
@@ -77,8 +74,6 @@ def create_and_save_vector_store(filename):
     return True
 
 def get_retriever(selected_policy):
-    # This function remains the same
-    # ... (code from previous response) ...
     store_path = os.path.join(VECTOR_STORE_DIR, f"{selected_policy}.faiss")
     if not os.path.exists(store_path):
         if not create_and_save_vector_store(selected_policy): return None
@@ -89,58 +84,39 @@ def get_retriever(selected_policy):
         print(f"Error loading vector store {store_path}: {e}")
         return None
 
-# --- INTELLIGENT DECISION-MAKING AI ---
+# --- INTELLIGENCE CORE ---
 def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_query: str):
-    """
-    Instructs the LLM to parse a query, evaluate it against clauses, and return a structured JSON decision.
-    """
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
-    # *** KEY IMPROVEMENT BASED ON YOUR PROBLEM STATEMENT ***
-    # The prompt now explicitly asks the model to parse the query first.
+    # --- KEY CHANGE ---
+    # The prompt now has an explicit mandate to determine the payout amount.
     prompt = f"""
-    You are a meticulous Insurance Claims Adjudicator AI. Your task is to analyze a user's query against policy clauses and render a precise, evidence-based judgment.
+    You are a strict, senior insurance claim adjudicator AI. Your primary directive is to provide a definitive, evidence-based decision, including the exact payout amount.
 
     **Analysis Context:**
-    - **Conversation History:** {chat_history}
-    - **User's Current Query:** "{user_query}"
+    - **User's Query:** "{user_query}"
     - **Relevant Policy Clauses (Source of Truth):**
     ---
     {relevant_clauses}
     ---
 
-    **Your Mandate (Follow these steps precisely):**
-    1.  **Parse Query:** First, deconstruct the user's query to identify all key details. Extract entities like age, gender, medical procedure, location, policy duration, etc.
-    2.  **Evaluate Against Clauses:** Systematically compare the parsed details from the query against the rules in the "Relevant Policy Clauses".
-    3.  **Decide and Justify:** Based on the evaluation, make a final decision. Your justification must clearly explain *how* the policy rules apply to the user's specific situation.
-    4.  **Cite Sources:** You MUST quote the exact clause(s) from the provided text that are the basis for your decision. This is non-negotiable for audit purposes.
+    **Your Mandate:**
+    1.  **Parse and Evaluate:** Deconstruct the user's query and systematically evaluate it against the rules in the "Relevant Policy Clauses".
+    2.  **Decide:** Determine the final claim status: "Approved" or "Rejected". If information is missing, you MUST default to "Rejected" and state what is needed.
+    3.  **Determine Payout Amount:** This is a critical step. If the claim is **Approved**, you MUST search the clauses for specific monetary values, coverage limits, or percentages to determine the payout amount. State the exact amount (e.g., '₹75,000'). If the clauses only provide a general statement (e.g., "as per plan"), state that. If the claim is rejected, the amount must be null.
+    4.  **Justify with Detail:** Write a comprehensive justification for your decision.
+    5.  **Cite Evidence:** You MUST quote the exact clause(s) that are the basis for your decision and amount calculation.
 
-    **Output Format:**
-    Your final output MUST be a single, valid JSON object. Do not include any text outside of this JSON structure.
+    **Required Output Format:**
+    You MUST respond with a single, valid JSON object.
     {{
-      "decision": "string (e.g., 'Approved', 'Rejected', 'More Information Needed')",
-      "amount": "string (e.g., '₹50,000') or null",
-      "justification": "string (A clear explanation for the decision, referencing the user's details and policy rules).",
+      "decision": "string (Must be 'Approved' or 'Rejected')",
+      "amount": "string (The calculated payout amount, e.g., '₹75,000', or null if Rejected)",
+      "justification": "string (Your detailed explanation).",
       "cited_clauses": [
-        "string (Direct quote of the first supporting clause)",
-        "string (Direct quote of the second supporting clause, if any)"
+        "string (Direct quote of the supporting clause)"
       ]
     }}
-
-    **Example:**
-    - User Query: "46-year-old male, knee surgery in Pune, 3-month-old insurance policy"
-    - Relevant Clauses: "1. A mandatory waiting period of 24 months is applicable for joint replacement surgeries. 2. All surgeries are covered up to ₹2,00,000."
-    - Expected JSON Output:
-    {{
-      "decision": "Rejected",
-      "amount": null,
-      "justification": "The claim for knee surgery is rejected because the policy has a mandatory 24-month waiting period for this procedure. The user's policy is only 3 months old, which is within the waiting period.",
-      "cited_clauses": [
-        "A mandatory waiting period of 24 months is applicable for joint replacement surgeries."
-      ]
-    }}
-
-    Now, process the user's query and provide your adjudication in the specified JSON format.
     """
     
     try:
@@ -153,14 +129,11 @@ def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_qu
         print(f"Error processing adjudication with LLM: {e}")
         return {
             "decision": "Error", "amount": None,
-            "justification": "An internal error occurred. Please try rephrasing your question or check the document.",
+            "justification": "I encountered an internal error. Please try rephrasing your question or check the server logs.",
             "cited_clauses": []
         }
 
-# --- WEB ROUTES & MAIN EXECUTION ---
-# All routes (/, /upload_policy, /list_policies, /chat) and the main execution block
-# remain the same as the previous version. They are already set up correctly.
-# ... (code from previous response) ...
+# --- WEB ROUTES ---
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -209,6 +182,7 @@ def chat_route():
     bot_response_json = get_adjudication_from_llm(history, clauses, user_query)
     return jsonify(bot_response_json)
 
+# --- MAIN EXECUTION ---
 if __name__ == "__main__":
     print("--- Starting Intelligent Policy Adjudicator Server ---")
     print("Indexing any existing documents...")
