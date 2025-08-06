@@ -1,0 +1,209 @@
+[
+    {
+        "id": 23,
+        "query": "46-year-old male, surgery in Pune, 35-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided information states the policy is 35 months old, which is greater than the 30-day waiting period. However, the user has not specified the type of surgery performed. Without knowing the specific procedure, it is impossible to determine if it falls under any exclusions or if it is a covered benefit. The policy lists 'General Surgery' under Annexure I as a potential Day Care Procedure, but also lists various specific surgeries as exclusions on page 25 and page 24. To make a determination, details about the surgery are required.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T01:48:25.299143"
+    },
+    {
+        "id": 22,
+        "query": "vishal 21 years old from nashik cataract surgery 7 years policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided policy clauses do not contain any specific information regarding coverage for cataract surgery. Clause 32 on page 21 and 22 mentions 'Treatment for correction of eye sight due to refractive error' but this is excluded unless specific medical reasons and a high refractive error (greater than or equal to 7.5) are met. Cataract surgery is not explicitly listed as a covered procedure nor is it mentioned as an exclusion. Without a specific clause confirming coverage for cataract surgery, the claim cannot be approved. Further clarification on policy benefits related to eye conditions would be required for a definitive approval.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T01:10:38.578995"
+    },
+    {
+        "id": 21,
+        "query": "67 male, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The policy documents provided do not contain any specific exclusions or inclusions related to heart surgery for a 67-year-old male. The information available discusses exclusions for obesity surgery, change-of-gender treatments, cosmetic surgery, rest cure, rehabilitation, and respite care. There is also a mention of day care procedures and hospitalization benefits, but no details pertaining to heart surgery. Without explicit clauses addressing heart surgery, a determination cannot be made.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T01:00:19.915297"
+    },
+    {
+        "id": 20,
+        "query": "old female, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The policy specifies coverage for emergency medical expenses incurred in the Republic of India for immediate medical services as an in-patient due to an illness or disease contracted during the policy period, or due to accidental injury. It also mentions coverage for life-saving unforeseen emergency measures for treating an illness or disease due to a pre-existing condition requiring in-patient treatment in an ICU. However, the provided information about an 'old female, heart surgery in Pune, 30-month-old insurance policy' does not specify if the heart surgery was an emergency, if it was a life-saving unforeseen emergency measure due to a pre-existing condition, or if it was related to an accidental injury. Furthermore, the policy states that treatment which could be reasonably delayed until the insured's return to their place of permanent residence is not covered. Without confirmation that the heart surgery met the emergency criteria as defined by the policy and was not reasonably delayable, the claim cannot be approved. The location of Pune is within the Republic of India, but this alone does not satisfy the coverage conditions.",
+        "policy_document": "CHOTGDP23004V012223.pdf",
+        "timestamp": "2025-08-07T00:57:44.979127"
+    },
+    {
+        "id": 19,
+        "query": "vishal 21 years old from nashik cataract surgery 7 years policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided policy clauses are for a GROUP DOMESTIC TRAVEL INSURANCE (CHOTGDP23004V012223). The policy details mention coverage for travel-related incidents and not for medical treatments such as cataract surgery. Specifically, the clauses discuss accident benefits, emergency accidental hospitalization documentation requirements, and definitions related to travel insurance. There is no mention of coverage for elective medical procedures like cataract surgery, nor is there any information regarding policy duration related to the insured's age at the time of treatment or surgery. Therefore, based on the provided policy wording, the claim for cataract surgery is not covered.",
+        "policy_document": "CHOTGDP23004V012223.pdf",
+        "timestamp": "2025-08-07T00:54:50.246559"
+    },
+    {
+        "id": 18,
+        "query": "vishal 21 years old from nashik",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided information states the user's name is Vishal and he is 21 years old from Nashik. However, no details regarding a specific claim, medical condition, treatment, or any service availed by the insured are provided. Therefore, it is impossible to adjudicate this request without the necessary claim information. The policy clauses provided are related to exclusions, office details, grievance redressal, and specific medical conditions/treatments, none of which are relevant to the limited information given.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:52:36.635717"
+    },
+    {
+        "id": 17,
+        "query": "vishal 21 years old from nashik  cataract surgery 7 years policy",
+        "decision": "Approved",
+        "amount": null,
+        "justification": "The policy covers surgery for cataract as explicitly listed in the provided clauses. The user's query mentions a cataract surgery claim for a policyholder with a 7-year policy term. The policy details provided do not specify an upper limit for cataract surgery claims, nor are there any exclusions related to the age of the policyholder for this specific procedure. Therefore, the claim for cataract surgery is approved, but the payout amount cannot be determined from the provided clauses as no monetary limit or specific cost breakdown is available.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:51:55.129614"
+    },
+    {
+        "id": 16,
+        "query": "vishal 21 years old from nashik cataract operation 4 years policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided information indicates a cataract operation for a 21-year-old. Upon reviewing the policy clauses, Clause 32 on page 21 and 25 specifically excludes 'Treatment for correction of eye sight due to refractive error recommended by Ophthalmologist for medical reasons with refractive error greater or equal to 7.5'. While cataract surgery is not explicitly listed as a refractive error correction, it is a procedure related to vision correction. Furthermore, there is no specific clause that covers cataract surgery for individuals of this age group without a higher refractive error threshold or other qualifying medical conditions. Therefore, based on the provided clauses, the claim cannot be approved.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:45:49.639249"
+    },
+    {
+        "id": 15,
+        "query": "old female, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided policy information does not contain specific details regarding coverage for heart surgery. While the policy covers 'In-patient Treatment' and lists various benefits, there is no explicit mention of heart surgery or any related procedures. Clause Excl02 mentions a 24-month waiting period for 'specified disease/procedure waiting period', but heart surgery is not listed as one of these specified conditions. Without specific coverage details for heart surgery, the claim cannot be approved. Additionally, the policy is described as a 30-month-old policy, but the current year of the policy is not specified, which would be relevant if a waiting period was applicable.",
+        "policy_document": "HDFHLIP23024V072223.pdf",
+        "timestamp": "2025-08-07T00:33:14.559118"
+    },
+    {
+        "id": 14,
+        "query": "old female, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Approved",
+        "amount": "` 4,00,000",
+        "justification": "The policy has been in force for 30 months, exceeding the 12-month continuous coverage requirement. The claim pertains to heart surgery, which falls under 'Cardiac Conditions' as per Clause 3.a.iii. Since the policy has been active for over 12 months, the exclusion for cardiac conditions within 90 days from the first policy commencement date (Clause 3.a) does not apply. The provided information indicates the hospitalization expenses for cardiovascular disease treatment in Mumbai (Zone A) which has a stated hospitalization expense amount of '` 4,00,000' in Illustration 1, Scenario 2 (Clause 3, Page 1). Therefore, the claim is approved for the specified amount.",
+        "policy_document": "ICIHLIP22012V012223.pdf",
+        "timestamp": "2025-08-07T00:32:41.546520"
+    },
+    {
+        "id": 13,
+        "query": "old female, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Approved",
+        "amount": "\u20b95,50,000",
+        "justification": "The policy has been in force for 30 months, which is longer than the 12-month continuous coverage requirement to waive exclusions for pre-existing cardiac conditions. The diagnosis of 'Heart Attack/ PTCA done/ Cardiovascular disease' is listed as a treatable condition in the policy. Specifically, Scenario 2 in the policy clauses details a hospitalization claim for Cardiovascular disease treated in Mumbai (Zone A) with total claimed expenses of \u20b95,50,000 (Hospitalisation expenses \u20b95,00,000 + Pre and Post hospitalisation expenses \u20b950,000). As the policy term exceeds 12 months, the exclusion for cardiac conditions within 90 days does not apply, and the treatment is within India as per clause 23. Therefore, the claim is approved for the total claimed expenses.",
+        "policy_document": "ICIHLIP22012V012223.pdf",
+        "timestamp": "2025-08-07T00:19:41.852702"
+    },
+    {
+        "id": 12,
+        "query": "old female, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided policy document does not contain specific coverage details for heart surgery. While the policy covers in-patient treatment, pre-hospitalization, and post-hospitalization, there is no explicit mention of heart surgery as a covered procedure or any associated sub-limits or coverage amounts. Furthermore, the query indicates a 30-month-old policy; however, the policy clauses related to waiting periods for pre-existing diseases (36 months) and specified diseases (24 months) do not provide sufficient information to determine eligibility without knowing the specific diagnosis date and whether it was a pre-existing condition. Given the lack of specific coverage information for heart surgery, the claim cannot be approved.",
+        "policy_document": "HDFHLIP23024V072223.pdf",
+        "timestamp": "2025-08-07T00:19:02.827148"
+    },
+    {
+        "id": 11,
+        "query": "87 year-old female, heart surgery in Pune, 30-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided information indicates that the patient is an 87-year-old female who underwent heart surgery. While the policy document includes several clauses related to various treatments and exclusions, there is no specific clause that addresses the coverage for heart surgery for a patient of this age, nor is there any mention of age-related limitations for cardiac procedures. Furthermore, the policy details do not provide a specific coverage limit for heart surgery or any related procedures. Without explicit coverage details or limits for heart surgery in the provided policy wording, a definitive approval or rejection based solely on the given clauses is not possible. However, based on the absence of affirmative coverage for this specific scenario and the age of the patient, the claim cannot be approved with the current information.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:18:32.606251"
+    },
+    {
+        "id": 10,
+        "query": "6-year-old male, surgery in Pune, 3-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The claim is rejected because the policy states that it covers medical expenses for treatment availed within India only. The provided information indicates surgery occurred in Pune, which is within India. However, the query also mentions a '3-month-old insurance policy' without specifying the date of the surgery or discharge. A critical clause requires claims to be submitted no later than 30 days after the date of discharge. Without the date of discharge, it is impossible to verify if the claim was submitted within the stipulated timeframe. Furthermore, the policy also has a 30-day waiting period for illnesses, which would exclude claims for treatment within the first 30 days of the policy commencement unless arising from an accident. The policy wording is also unclear on whether the '6-year-old male' status is relevant to the surgery performed without further context on the nature of the ailment or treatment. Therefore, based on the available information and the need for further details on the discharge date to ascertain timely submission, the claim cannot be approved.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:15:23.210610"
+    },
+    {
+        "id": 9,
+        "query": "46-year-old male, knee surgery in Pune, 3",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The provided information is insufficient to process the claim. The user query mentions 'knee surgery' for a 46-year-old male, and a location 'Pune', but lacks essential details such as the specific procedure performed, the date of service, the name of the hospital, and the associated medical bills or discharge summary. While 'Revision/Removal of Knee cap' (item 312) and 'Fixation of knee joint' (item 325) are listed as covered procedures, without further documentation detailing the exact surgery and its medical necessity, the claim cannot be approved. Additionally, the query does not specify any amount for the surgery.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:06:20.486786"
+    },
+    {
+        "id": 8,
+        "query": "h",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The user's query 'h' does not correspond to any identifiable medical condition or procedure mentioned within the provided policy clauses. The clauses list various conditions and treatments, but a simple letter 'h' is insufficient for claim adjudication. Therefore, the claim is rejected due to lack of specific information.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-07T00:06:06.514830"
+    },
+    {
+        "id": 7,
+        "query": "46-year-old male, knee surgery in Pune, 3-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The claim is rejected because the policy explicitly states a territorial limit, requiring all medical treatment to be taken within India. The user's query indicates knee surgery was performed in Pune, which is within India. However, another clause states that \"Treatment for breakage of long bones/Joint replacements\" has a sub-limit of \u20b91,00,000. Without specific details on the nature of the surgery (e.g., if it qualifies as a joint replacement), and given the policy is only 3 months old, the claim cannot be approved at this stage. Further clarification on the specific procedure and its alignment with policy definitions is required, but the primary rejection point is the lack of specific covered sub-limit information for the procedure within the provided context.",
+        "policy_document": "ICIHLIP22012V012223.pdf",
+        "timestamp": "2025-08-07T00:05:08.007868"
+    },
+    {
+        "id": 6,
+        "query": "hellllo",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The user's query 'hellllo' does not contain any information that can be processed as an insurance claim. The provided policy clauses detail office locations and contact information for Insurance Ombudsmen across various regions of India. There is no information within these clauses that allows for the adjudication of a claim or the determination of a payout amount. Therefore, the claim cannot be processed based on the provided documentation.",
+        "policy_document": "ICIHLIP22012V012223.pdf",
+        "timestamp": "2025-08-07T00:04:57.369628"
+    },
+    {
+        "id": 5,
+        "query": "46-year-old male, knee surgery in Pune, 3-month-old insurance policy",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The claim is rejected because the medical treatment was sought in Pune, India, which falls outside the territorial limit specified in the policy. Clause 23 explicitly states that all medical treatment must be taken within India only. While the user's query does not specify the exact location within India, Pune is a city in India, and the policy's territorial limit is broadly defined as 'India only'. Therefore, treatment within India is permitted. However, the user mentioned 'knee surgery in Pune', which is within India. My apologies for the misinterpretation. Re-evaluating the provided clauses, there is no specific exclusion for knee surgery or general surgery within India. The mention of 'Treatment for breakage of long bones/Joint replacements' on page 1 with associated sub-limits suggests that such treatments *could* be covered, subject to other policy terms not violated here. However, without knowing the specific sub-limit applicable to the knee surgery, and given no other exclusions or limitations are evident in the provided text that would lead to a rejection based on the query details alone, the claim cannot be definitively approved or rejected based on the provided information. If the surgery was indeed in Pune, India, it does not violate the territorial limit. However, as I am a strict adjudicator and can only base my decision on provided evidence, and the provided text does not contain enough detail to determine coverage specifics (like the specific sub-limit applicable to knee surgery, or if it was a pre-existing condition addressed within the first 90 days, etc.), I cannot approve the claim.",
+        "policy_document": "ICIHLIP22012V012223.pdf",
+        "timestamp": "2025-08-06T23:54:11.078165"
+    },
+    {
+        "id": 4,
+        "query": "46-year-old male, knee surgery in Pune, 3-month-old insurance policy",
+        "decision": "Approved",
+        "amount": "Up to Sum Insured",
+        "justification": "The policy covers In-patient Hospitalization Treatment, and the provided information indicates knee surgery was performed in Pune. The policy document lists 'Revision/Removal of Knee cap' as a covered procedure. As the policy is only 3 months old and no exclusions are mentioned that would apply to this scenario, the claim for knee surgery is approved, with the payout determined by the Sum Insured for In-patient Hospitalization Treatment.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-06T23:53:39.615480"
+    },
+    {
+        "id": 3,
+        "query": "hello",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The user's query 'hello' does not provide any information regarding a claim, medical condition, or hospital admission. Therefore, it is impossible to adjudicate any claim based on the provided policy clauses.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-06T23:53:34.043781"
+    },
+    {
+        "id": 2,
+        "query": "hello",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The user's query 'hello' does not provide any information regarding a claim, medical condition, hospitalization, or any other details that would allow for adjudication based on the provided policy clauses. Therefore, no decision can be made at this time.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-06T23:50:43.114189"
+    },
+    {
+        "id": 1,
+        "query": "hello",
+        "decision": "Rejected",
+        "amount": null,
+        "justification": "The user's query 'hello' does not contain any information pertaining to a medical claim, hospitalization, illness, or any other details that would allow for adjudication against the provided policy clauses. Therefore, the claim cannot be processed.",
+        "policy_document": "BAJHLIP23020V012223.pdf",
+        "timestamp": "2025-08-06T23:24:41.355526"
+    }
+]

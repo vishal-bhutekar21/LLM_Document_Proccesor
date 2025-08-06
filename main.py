@@ -2,18 +2,22 @@
 
 import os
 import json
-import fitz  # PyMuPDF
+import fitz
 import docx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import google.generativeai as genai
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
+# Import the history manager module
+import history_manager
+
 # --- FLASK APP INITIALIZATION & SECURITY ---
-app = Flask(__name__)
+# Make the UPLOAD_FOLDER accessible for the frontend to fetch documents
+app = Flask(__name__, static_folder='policy_documents')
 load_dotenv()
 
 # CRITICAL SECURITY: Load API key from environment variables.
@@ -40,6 +44,7 @@ embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
 print("Embedding model loaded.")
 
 # --- DOCUMENT PROCESSING & VECTOR STORE LOGIC ---
+# (These functions remain unchanged)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -48,14 +53,20 @@ def extract_text_from_file(file_path, filename):
     try:
         if filename.endswith(".pdf"):
             with fitz.open(file_path) as doc:
-                file_text = "\n".join([page.get_text() for page in doc])
+                # Store text per page for metadata
+                pages_text = []
+                for page_num, page in enumerate(doc):
+                    pages_text.append({"text": page.get_text(), "metadata": {"page": page_num + 1}})
+                return pages_text
         elif filename.endswith(".txt"):
             with open(file_path, 'r', encoding='utf-8') as f:
-                file_text = f.read()
+                # For txt, consider the whole file as page 1
+                return [{"text": f.read(), "metadata": {"page": 1}}]
         elif filename.endswith(".docx"):
             doc = docx.Document(file_path)
-            file_text = "\n".join([para.text for para in doc.paragraphs])
-        return file_text
+            # For docx, consider the whole file as page 1
+            full_text = "\n".join([para.text for para in doc.paragraphs])
+            return [{"text": full_text, "metadata": {"page": 1}}]
     except Exception as e:
         print(f"Error reading file {filename}: {e}")
         return None
@@ -64,12 +75,19 @@ def create_and_save_vector_store(filename):
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     store_path = os.path.join(VECTOR_STORE_DIR, f"{filename}.faiss")
     if os.path.exists(store_path): return True
-    document_text = extract_text_from_file(file_path, filename)
-    if not document_text or not document_text.strip(): return False
+    
+    pages = extract_text_from_file(file_path, filename)
+    if not pages: return False
+
+    # Use LangChain's Document object to store metadata
+    from langchain_core.documents import Document
+    all_docs = [Document(page_content=page['text'], metadata=page['metadata']) for page in pages]
+
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
-    chunks = text_splitter.split_text(document_text)
+    chunks = text_splitter.split_documents(all_docs)
     if not chunks: return False
-    store = FAISS.from_texts(texts=chunks, embedding=embeddings)
+
+    store = FAISS.from_documents(documents=chunks, embedding=embeddings)
     store.save_local(store_path)
     return True
 
@@ -85,27 +103,31 @@ def get_retriever(selected_policy):
         return None
 
 # --- INTELLIGENCE CORE ---
-def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_query: str):
+def get_adjudication_from_llm(chat_history: list, relevant_docs: list, user_query: str):
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
-    # --- KEY CHANGE ---
-    # The prompt now has an explicit mandate to determine the payout amount.
+    # NEW: Format the context to include page numbers
+    clauses_with_metadata = [
+        {"content": doc.page_content, "page": doc.metadata.get('page', 1)} 
+        for doc in relevant_docs
+    ]
+
     prompt = f"""
-    You are a strict, senior insurance claim adjudicator AI. Your primary directive is to provide a definitive, evidence-based decision, including the exact payout amount.
+    You are a strict, senior insurance claim adjudicator AI. Your primary directive is to provide a definitive, evidence-based decision based on the provided policy clauses.
 
     **Analysis Context:**
     - **User's Query:** "{user_query}"
     - **Relevant Policy Clauses (Source of Truth):**
     ---
-    {relevant_clauses}
+    {json.dumps(clauses_with_metadata, indent=2)}
     ---
 
     **Your Mandate:**
-    1.  **Parse and Evaluate:** Deconstruct the user's query and systematically evaluate it against the rules in the "Relevant Policy Clauses".
-    2.  **Decide:** Determine the final claim status: "Approved" or "Rejected". If information is missing, you MUST default to "Rejected" and state what is needed.
-    3.  **Determine Payout Amount:** This is a critical step. If the claim is **Approved**, you MUST search the clauses for specific monetary values, coverage limits, or percentages to determine the payout amount. State the exact amount (e.g., '₹75,000'). If the clauses only provide a general statement (e.g., "as per plan"), state that. If the claim is rejected, the amount must be null.
-    4.  **Justify with Detail:** Write a comprehensive justification for your decision.
-    5.  **Cite Evidence:** You MUST quote the exact clause(s) that are the basis for your decision and amount calculation.
+    1.  **Analyze:** Evaluate the user's query against the rules in the "Relevant Policy Clauses" JSON above.
+    2.  **Decide:** Determine the final claim status: "Approved" or "Rejected".
+    3.  **Determine Payout Amount:** If Approved, you MUST find the specific monetary value from the clauses.
+    4.  **Justify:** Write a comprehensive justification for your decision.
+    5.  **Cite Evidence:** This is critical. Your response for "cited_clauses" MUST be a JSON array of objects. Each object must contain the exact text of the clause you are citing (`text`) and the corresponding page number (`page`) from the source JSON.
 
     **Required Output Format:**
     You MUST respond with a single, valid JSON object.
@@ -114,11 +136,13 @@ def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_qu
       "amount": "string (The calculated payout amount, e.g., '₹75,000', or null if Rejected)",
       "justification": "string (Your detailed explanation).",
       "cited_clauses": [
-        "string (Direct quote of the supporting clause)"
+        {{
+          "text": "string (Direct quote of the supporting clause)",
+          "page": "integer (The page number from the source JSON)"
+        }}
       ]
     }}
     """
-    
     try:
         response = model.generate_content(
             prompt,
@@ -129,7 +153,7 @@ def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_qu
         print(f"Error processing adjudication with LLM: {e}")
         return {
             "decision": "Error", "amount": None,
-            "justification": "I encountered an internal error. Please try rephrasing your question or check the server logs.",
+            "justification": "I encountered an internal error. Please try rephrasing your question.",
             "cited_clauses": []
         }
 
@@ -137,6 +161,11 @@ def get_adjudication_from_llm(chat_history: list, relevant_clauses: str, user_qu
 @app.route('/')
 def home():
     return render_template('index.html')
+
+# NEW: Add a route to serve the documents
+@app.route('/documents/<path:filename>')
+def serve_document(filename):
+    return app.send_static_file(filename)
 
 @app.route('/upload_policy', methods=['POST'])
 def upload_policy():
@@ -174,13 +203,22 @@ def chat_route():
     if not retriever:
         return jsonify({"error": "The selected policy document could not be loaded or processed."}), 500
 
+    # Retrieve documents with their metadata
     retrieved_docs = retriever.invoke(user_query)
-    clauses = "\n\n---\n\n".join([doc.page_content for doc in retrieved_docs])
-    if not clauses.strip():
-        clauses = "No relevant clauses were found in the document for this query."
-
-    bot_response_json = get_adjudication_from_llm(history, clauses, user_query)
+    
+    # Pass the full document objects to the LLM function
+    bot_response_json = get_adjudication_from_llm(history, retrieved_docs, user_query)
+    
+    # Add the document URL to the response for the frontend
+    bot_response_json['document_url'] = url_for('serve_document', filename=policy, _external=True)
+    
+    history_manager.add_claim_to_history(user_query, policy, bot_response_json)
     return jsonify(bot_response_json)
+
+@app.route('/get_history', methods=['GET'])
+def get_history():
+    claim_history = history_manager.read_history()
+    return jsonify(claim_history)
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":

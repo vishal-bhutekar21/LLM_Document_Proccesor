@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Policy Adjudicator AI</title>
+    <!-- PDF.js library for rendering PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.102/pdf.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         :root {
@@ -43,6 +45,8 @@
         .clauses-toggle { font-weight: 600; cursor: pointer; color: var(--primary); margin-bottom: 0.75rem; display: inline-block; }
         .clauses-content { display: none; border-left: 3px solid var(--primary); padding-left: 1rem; font-size: 0.9rem; color: var(--text-medium); }
         .clauses-content pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; margin: 0; }
+        .clickable-clause { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; transition: color 0.2s; }
+        .clickable-clause:hover { color: var(--primary); }
         
         .input-area { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
         .input-area form { display: flex; align-items: center; gap: 1rem; }
@@ -54,19 +58,33 @@
         #micBtn:not(.listening) .stop-icon { display: none; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0); } 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); } }
 
-        /* --- NEW: File Upload Modal --- */
         .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-backdrop.visible { opacity: 1; pointer-events: all; }
-        .modal-content { background: var(--bg-surface); padding: 2rem; border-radius: 1rem; border: 1px solid var(--border-color); width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-content { background: var(--bg-surface); padding: 2rem; border-radius: 1rem; border: 1px solid var(--border-color); width: 90%; max-width: 700px; transform: scale(0.95); transition: transform 0.3s ease; display: flex; flex-direction: column; max-height: 80vh; }
         .modal-backdrop.visible .modal-content { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0; }
         .modal-header h2 { margin: 0; font-size: 1.25rem; }
-        #closeModalBtn { background: none; border: none; color: var(--text-medium); font-size: 1.5rem; cursor: pointer; }
+        .modal-close-btn { background: none; border: none; color: var(--text-medium); font-size: 1.5rem; cursor: pointer; }
+        
         .upload-area { border: 2px dashed var(--border-color); border-radius: 0.75rem; padding: 2rem; text-align: center; transition: border-color 0.2s; }
         .upload-area.dragover { border-color: var(--primary); }
         .upload-area p { margin: 0 0 1rem 0; }
         #fileInput { display: none; }
         #uploadStatus { margin-top: 1rem; text-align: center; }
+
+        .history-table-container { overflow-y: auto; }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th, .history-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .history-table th { font-weight: 600; font-size: 0.9rem; color: var(--text-medium); }
+        .history-table td { font-size: 0.9rem; }
+        .history-table .status-approved { color: var(--approved-border); font-weight: 600; }
+        .history-table .status-rejected { color: var(--rejected-border); font-weight: 600; }
+        .history-table .query-cell { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        #docViewerModal .modal-content { max-width: 900px; }
+        #pdf-render { border: 1px solid var(--border-color); border-radius: 0.5rem; max-width: 100%; height: auto; }
+        #doc-viewer-header { text-align: center; margin-bottom: 1rem; }
+
     </style>
 </head>
 <body>
@@ -75,6 +93,9 @@
             <h1>Policy Adjudicator AI</h1>
             <div class="controls">
                 <select id="policySelect" aria-label="Select a policy document"></select>
+                <button id="historyBtn" class="icon-btn" title="View Claim History">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 7.54 5.04M3.51 15a9 9 0 0 0 12.95 3.96"/></svg>
+                </button>
                 <button id="uploadBtn" class="icon-btn" title="Upload New Policy">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5 5 5M12 15V3"/></svg>
                 </button>
@@ -92,12 +113,12 @@
         </footer>
     </div>
 
-    <!-- NEW: Upload Modal HTML -->
+    <!-- Upload Modal -->
     <div id="uploadModal" class="modal-backdrop">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Upload Policy Document</h2>
-                <button id="closeModalBtn">&times;</button>
+                <button id="closeUploadModalBtn" class="modal-close-btn">&times;</button>
             </div>
             <div id="uploadArea" class="upload-area">
                 <p>Drag & Drop your file here</p>
@@ -109,21 +130,61 @@
         </div>
     </div>
 
-    <script>
-        // --- DOM Elements ---
-        const ui = {
-            chatMessages: document.getElementById('chatMessages'), chatForm: document.getElementById('chatForm'),
-            chatInput: document.getElementById('chatInput'), policySelect: document.getElementById('policySelect'),
-            micBtn: document.getElementById('micBtn'), uploadBtn: document.getElementById('uploadBtn'),
-            uploadModal: document.getElementById('uploadModal'), closeModalBtn: document.getElementById('closeModalBtn'),
-            uploadArea: document.getElementById('uploadArea'), fileInput: document.getElementById('fileInput'),
-            uploadStatus: document.getElementById('uploadStatus')
-        };
-        let conversationHistory = []; let isListening = false;
+    <!-- History Modal -->
+    <div id="historyModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Claim History</h2>
+                <button id="closeHistoryModalBtn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="history-table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr><th>ID</th><th>Query</th><th>Decision</th><th>Amount</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        // --- Core Application Logic (Chat, Speech, etc.) ---
-        // This section remains largely the same as the previous version.
-        // ... (addMessage, createDecisionCard, toggleListening, etc.) ...
+    <!-- Document Viewer Modal -->
+    <div id="docViewerModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="doc-viewer-header">Document Viewer</h2>
+                <button id="closeDocViewerModalBtn" class="modal-close-btn">&times;</button>
+            </div>
+            <canvas id="pdf-render"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const ui = {
+            chatMessages: document.getElementById('chatMessages'),
+            chatForm: document.getElementById('chatForm'),
+            chatInput: document.getElementById('chatInput'),
+            policySelect: document.getElementById('policySelect'),
+            micBtn: document.getElementById('micBtn'),
+            uploadBtn: document.getElementById('uploadBtn'),
+            uploadModal: document.getElementById('uploadModal'),
+            closeUploadModalBtn: document.getElementById('closeUploadModalBtn'),
+            uploadArea: document.getElementById('uploadArea'),
+            fileInput: document.getElementById('fileInput'),
+            uploadStatus: document.getElementById('uploadStatus'),
+            historyBtn: document.getElementById('historyBtn'),
+            historyModal: document.getElementById('historyModal'),
+            closeHistoryModalBtn: document.getElementById('closeHistoryModalBtn'),
+            historyTableBody: document.getElementById('historyTableBody'),
+            docViewerModal: document.getElementById('docViewerModal'),
+            closeDocViewerModalBtn: document.getElementById('closeDocViewerModalBtn'),
+            pdfCanvas: document.getElementById('pdf-render'),
+            docViewerHeader: document.getElementById('doc-viewer-header'),
+        };
+        let conversationHistory = [];
+        let isListening = false;
+
+        // --- CORE CHAT LOGIC ---
         function addMessage(sender, content, type = 'text') {
             const messageContainer = document.createElement('div');
             if (type === 'decision' && sender === 'bot') {
@@ -137,6 +198,7 @@
             ui.chatMessages.scrollTop = ui.chatMessages.scrollHeight;
             return messageContainer;
         }
+
         function createDecisionCard(data) {
             const card = document.createElement('div');
             const decision = data.decision || 'Info';
@@ -144,30 +206,33 @@
             card.className = `decision-card ${decisionClass === 'approved' ? 'approved' : 'rejected'}`;
             const titleText = `Claim ${decision}`;
             const amountHTML = (decision === 'Approved' && data.amount) ? `<h2 class="decision-amount">Approved Amount: ${data.amount}</h2>` : '';
-            card.innerHTML = `<h1 class="decision-title">${titleText}</h1>${amountHTML}<p class="justification">${data.justification || 'No justification provided.'}</p>${data.cited_clauses && data.cited_clauses.length > 0 ? `<div class="clauses-toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">Show Supporting Clauses ▼</div><div class="clauses-content"><pre>${data.cited_clauses.join('\n\n---\n\n')}</pre></div>` : ''}`;
+            
+            let clausesHTML = '';
+            if (data.cited_clauses && data.cited_clauses.length > 0) {
+                const clausesContent = data.cited_clauses.map(clause => {
+                    const text = clause.text || "Clause text not available.";
+                    const page = clause.page || 1;
+                    const docUrl = data.document_url ? data.document_url.replace(/'/g, "\\'") : '';
+                    return `<pre class="clickable-clause" onclick="showDocumentViewer('${docUrl}', ${page})">${text}</pre>`;
+                }).join('<hr style="border-color: var(--border-color); margin: 0.5rem 0;">');
+                
+                clausesHTML = `<div class="clauses-toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">Show Supporting Clauses ▼</div>
+                               <div class="clauses-content" style="display: block;">${clausesContent}</div>`;
+            }
+
+            card.innerHTML = `<h1 class="decision-title">${titleText}</h1>${amountHTML}<p class="justification">${data.justification || 'No justification provided.'}</p>${clausesHTML}`;
             return card;
         }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-        if (recognition) {
-            recognition.continuous = false; recognition.lang = 'en-US';
-            recognition.onresult = e => { ui.chatInput.value = e.results[0][0].transcript; };
-            recognition.onend = () => { if (ui.chatInput.value.trim()) ui.chatForm.requestSubmit(); toggleListening(false); };
-        }
-        const toggleListening = (start) => {
-            isListening = start;
-            ui.micBtn.classList.toggle('listening', start);
-            ui.micBtn.title = start ? 'Stop Listening' : 'Start Voice Input';
-            if (!recognition) return;
-            try { start ? recognition.start() : recognition.stop(); } catch(e) { console.error("Speech Recognition Error:", e); }
-        };
-        ui.micBtn.addEventListener('click', () => toggleListening(!isListening));
+
         ui.chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const userQuery = ui.chatInput.value.trim();
             if (!userQuery) return;
             const selectedPolicy = ui.policySelect.value;
-            if (!selectedPolicy) { addMessage('bot', "Please upload and select a policy document first.", 'decision'); return; }
+            if (!selectedPolicy) { 
+                addMessage('bot', { decision: 'Error', justification: "Please upload and select a policy document first." }, 'decision'); 
+                return; 
+            }
             addMessage('user', userQuery);
             ui.chatInput.value = '';
             conversationHistory.push({ role: 'user', content: userQuery });
@@ -188,22 +253,36 @@
             }
         });
 
-        // --- NEW: File Upload Logic ---
+        // --- SPEECH RECOGNITION ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        if (recognition) {
+            recognition.continuous = false; recognition.lang = 'en-US';
+            recognition.onresult = e => { ui.chatInput.value = e.results[0][0].transcript; };
+            recognition.onend = () => { if (ui.chatInput.value.trim()) ui.chatForm.requestSubmit(); toggleListening(false); };
+        }
+        const toggleListening = (start) => {
+            isListening = start;
+            ui.micBtn.classList.toggle('listening', start);
+            ui.micBtn.title = start ? 'Stop Listening' : 'Start Voice Input';
+            if (!recognition) return;
+            try { start ? recognition.start() : recognition.stop(); } catch(e) { console.error("Speech Recognition Error:", e); }
+        };
+        ui.micBtn.addEventListener('click', () => toggleListening(!isListening));
+
+        // --- UPLOAD MODAL ---
         function showUploadModal(show) {
             ui.uploadModal.classList.toggle('visible', show);
             if (!show) {
                 ui.uploadStatus.innerHTML = '';
-                ui.fileInput.value = ''; // Reset file input
+                ui.fileInput.value = '';
             }
         }
-
         async function handleFileUpload(file) {
             if (!file) return;
             const formData = new FormData();
             formData.append('policyFile', file);
-
             ui.uploadStatus.innerHTML = `Uploading <b>${file.name}</b>...`;
-            
             try {
                 const res = await fetch('/upload_policy', {
                     method: 'POST',
@@ -211,44 +290,95 @@
                 });
                 const result = await res.json();
                 if (!res.ok) throw new Error(result.error);
-                
                 ui.uploadStatus.innerHTML = `<span style="color: var(--approved-border);">${result.message}</span>`;
-                await loadPolicies(); // Refresh the dropdown
-                ui.policySelect.value = result.filename; // Select the new file
-                
+                await loadPolicies();
+                ui.policySelect.value = result.filename;
                 setTimeout(() => showUploadModal(false), 1500);
-
             } catch (error) {
                 ui.uploadStatus.innerHTML = `<span style="color: var(--rejected-border);">Error: ${error.message}</span>`;
             }
         }
-
         ui.uploadBtn.addEventListener('click', () => showUploadModal(true));
-        ui.closeModalBtn.addEventListener('click', () => showUploadModal(false));
+        ui.closeUploadModalBtn.addEventListener('click', () => showUploadModal(false));
         ui.uploadModal.addEventListener('click', (e) => {
             if (e.target === ui.uploadModal) showUploadModal(false);
         });
-
-        // Drag and Drop Events
-        ui.uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            ui.uploadArea.classList.add('dragover');
-        });
-        ui.uploadArea.addEventListener('dragleave', () => {
-            ui.uploadArea.classList.remove('dragover');
-        });
+        ui.uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); ui.uploadArea.classList.add('dragover'); });
+        ui.uploadArea.addEventListener('dragleave', () => { ui.uploadArea.classList.remove('dragover'); });
         ui.uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             ui.uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            handleFileUpload(file);
+            handleFileUpload(e.dataTransfer.files[0]);
         });
-        ui.fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            handleFileUpload(file);
+        ui.fileInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0]));
+
+        // --- HISTORY MODAL ---
+        function showHistoryModal(show) {
+            ui.historyModal.classList.toggle('visible', show);
+        }
+        async function loadAndDisplayHistory() {
+            try {
+                const res = await fetch('/get_history');
+                const history = await res.json();
+                if (!res.ok) throw new Error('Failed to load history.');
+                ui.historyTableBody.innerHTML = '';
+                if (history.length === 0) {
+                    ui.historyTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No claim history found.</td></tr>';
+                    return;
+                }
+                history.forEach(claim => {
+                    const row = document.createElement('tr');
+                    const decisionClass = `status-${claim.decision.toLowerCase()}`;
+                    const formattedDate = new Date(claim.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    row.innerHTML = `<td>${claim.id}</td><td class="query-cell" title="${claim.query}">${claim.query}</td><td class="${decisionClass}">${claim.decision}</td><td>${claim.amount || 'N/A'}</td><td>${formattedDate}</td>`;
+                    ui.historyTableBody.appendChild(row);
+                });
+            } catch (error) {
+                ui.historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--rejected-border);">${error.message}</td></tr>`;
+            }
+        }
+        ui.historyBtn.addEventListener('click', () => {
+            loadAndDisplayHistory();
+            showHistoryModal(true);
+        });
+        ui.closeHistoryModalBtn.addEventListener('click', () => showHistoryModal(false));
+        ui.historyModal.addEventListener('click', (e) => {
+            if (e.target === ui.historyModal) showHistoryModal(false);
+        });
+        
+        // --- DOCUMENT VIEWER ---
+        function showDocumentViewer(docUrl, pageNum) {
+            if (!docUrl || !pageNum) {
+                console.error("Document URL or Page Number is missing.");
+                return;
+            }
+            ui.docViewerModal.classList.add('visible');
+            ui.docViewerHeader.textContent = `Loading Document (Page ${pageNum})...`;
+            const loadingTask = pdfjsLib.getDocument(docUrl);
+            loadingTask.promise.then(pdf => {
+                pdf.getPage(pageNum).then(page => {
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const context = ui.pdfCanvas.getContext('2d');
+                    ui.pdfCanvas.height = viewport.height;
+                    ui.pdfCanvas.width = viewport.width;
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                    ui.docViewerHeader.textContent = `Document Preview (Page ${pageNum})`;
+                });
+            }, reason => {
+                console.error(reason);
+                ui.docViewerHeader.textContent = `Error loading document.`;
+            });
+        }
+        ui.closeDocViewerModalBtn.addEventListener('click', () => ui.docViewerModal.classList.remove('visible'));
+        ui.docViewerModal.addEventListener('click', (e) => {
+            if (e.target === ui.docViewerModal) ui.docViewerModal.classList.remove('visible');
         });
 
-        // --- Initialization ---
+        // --- INITIALIZATION ---
         const loadPolicies = async () => {
             try {
                 const res = await fetch('/list_policies');
@@ -261,7 +391,6 @@
                 ui.policySelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
             }
         };
-
         window.addEventListener('DOMContentLoaded', () => {
             loadPolicies();
             addMessage('bot', 'Hello! I am your Policy Adjudicator AI. Please select a document or upload a new one to get started.');
